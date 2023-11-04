@@ -1,5 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
-import { Question } from './question.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 import { Category } from './category.entity';
 
 @Entity()
@@ -9,9 +8,6 @@ export class Quiz {
 
   @Column()
   title: string; // Le titre du quiz
-
-  @OneToMany(() => Question, (question) => question.quiz)
-  questions: Question[]; // Les questions associées au quiz
 
   @Column({ default: 30 })
   timer: number; // Le temps alloué pour répondre à chaque question, en secondes

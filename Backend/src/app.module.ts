@@ -20,7 +20,7 @@ import { AppService } from './app.service';
         password: configService.get('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_DB'),
         autoLoadEntities: true,
-        synchronize: configService.get('TYPEORM_SYNC') === 'true', //False in prod
+        synchronize: configService.get('TYPEORM_SYNC') === 'true', // Attention: mettre false en production
       }),
     }),
   ],

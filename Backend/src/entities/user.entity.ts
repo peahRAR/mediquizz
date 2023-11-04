@@ -3,17 +3,20 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number; // ID
 
   @Column()
-  username: string;
+  username: string; // Pseudo
 
   @Column()
-  email: string;
+  email: string; // Mail
 
   @Column()
-  password: string;
+  password: string; // MDP a cyrypter
 
   @Column({ default: 0 })
-  bestScore: number;
+  bestScore: number; // Meilleur score
+
+  @Column({ default: 0 })
+  privilegeLevel: number; // Niveaux de privilèges
 }

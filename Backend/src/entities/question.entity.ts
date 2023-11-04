@@ -6,7 +6,6 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
-import { Quiz } from './quiz.entity';
 
 @Entity()
 export class Question {
@@ -14,7 +13,7 @@ export class Question {
   id: number;
 
   @Column({ length: 500 })
-  content: string;
+  content: string; // Réponse de l'utilisateur
 
   @Column({ nullable: true })
   correctAnswer: string; // La bonne réponse (pour les questions à réponse courte)
@@ -27,9 +26,5 @@ export class Question {
 
   @ManyToOne(() => Category, (category) => category.questions)
   @JoinColumn({ name: 'categoryId' })
-  category: Category;
-
-  @ManyToOne(() => Quiz, (quiz) => quiz.questions)
-  @JoinColumn({ name: 'quizId' }) // Assurez-vous que la colonne s'appelle 'quizId'
-  quiz: Quiz; // Quiz associé à la question
+  category: Category; // Categorie de la question
 }
