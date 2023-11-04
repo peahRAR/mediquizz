@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
-import { Category } from './category.entity';
+import { Category } from '../category/category.entity';
 
 @Entity()
 export class Quiz {
