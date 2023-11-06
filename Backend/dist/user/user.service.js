@@ -22,22 +22,25 @@ let UserService = class UserService {
         this.userRepository = userRepository;
     }
     async create(user) {
-        return await this.userRepository.save(user);
+        return this.userRepository.save(user);
     }
     async findAll() {
-        return await this.userRepository.find();
+        return this.userRepository.find();
     }
     async findOne(id) {
         const options = {
             where: { id },
         };
-        return await this.userRepository.findOne(options);
+        return this.userRepository.findOne(options);
+    }
+    async findOneByUsername(username) {
+        return this.userRepository.findOne({ where: { username } });
     }
     async update(id, user) {
-        return await this.userRepository.update(id, user);
+        return this.userRepository.update(id, user);
     }
     async remove(id) {
-        await this.userRepository.delete(id);
+        this.userRepository.delete(id);
     }
 };
 exports.UserService = UserService;

@@ -6,6 +6,7 @@ export declare class UserService {
     create(user: User): Promise<User>;
     findAll(): Promise<User[]>;
     findOne(id: number): Promise<User>;
+    findOneByUsername(username: string): Promise<User | undefined>;
     update(id: number, user: User): Promise<UpdateResult>;
     remove(id: number): Promise<void>;
 }

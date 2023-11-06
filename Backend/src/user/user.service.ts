@@ -12,12 +12,12 @@ export class UserService {
   ) {}
   // CREATE
   async create(user: User): Promise<User> {
-    return await this.userRepository.save(user);
+    return this.userRepository.save(user);
   }
 
   // READ ALL
   async findAll(): Promise<User[]> {
-    return await this.userRepository.find();
+    return this.userRepository.find();
   }
 
   // READ ONE
@@ -25,16 +25,21 @@ export class UserService {
     const options: FindOneOptions<User> = {
       where: { id },
     };
-    return await this.userRepository.findOne(options);
+    return this.userRepository.findOne(options);
+  }
+
+  // READ ONE USER BY USERNAME
+  async findOneByUsername(username: string): Promise<User | undefined> {
+    return this.userRepository.findOne({ where: { username } });
   }
 
   // UPDATE
   async update(id: number, user: User): Promise<UpdateResult> {
-    return await this.userRepository.update(id, user);
+    return this.userRepository.update(id, user);
   }
 
   // DELETE
   async remove(id: number): Promise<void> {
-    await this.userRepository.delete(id);
+    this.userRepository.delete(id);
   }
 }
