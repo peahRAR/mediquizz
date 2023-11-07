@@ -20,8 +20,12 @@ let AuthService = class AuthService {
     }
     async signIn(username, pass) {
         const user = await this.usersService.findOneByUsername(username);
-        if (user?.password !== pass) {
-            throw new common_1.UnauthorizedException();
+        if (!user) {
+            throw new common_1.UnauthorizedException('Utilisateur introuvable');
+        }
+        const isPasswordValid = await this.usersService.verifyPassword(username, pass);
+        if (!isPasswordValid) {
+            throw new common_1.UnauthorizedException('Mot de passe incorrect');
         }
         const payload = { sub: user.id, username: user.username };
         return {

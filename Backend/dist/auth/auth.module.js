@@ -13,6 +13,8 @@ const auth_controller_1 = require("./auth.controller");
 const auth_service_1 = require("./auth.service");
 const user_module_1 = require("../user/user.module");
 const jwt_1 = require("@nestjs/jwt");
+const core_1 = require("@nestjs/core");
+const auth_guard_1 = require("./auth.guard");
 let AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule;
@@ -31,7 +33,13 @@ exports.AuthModule = AuthModule = __decorate([
             }),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService],
+        providers: [
+            auth_service_1.AuthService,
+            {
+                provide: core_1.APP_GUARD,
+                useClass: auth_guard_1.AuthGuard,
+            },
+        ],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
