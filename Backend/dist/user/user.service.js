@@ -17,15 +17,35 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const user_entity_1 = require("./user.entity");
+const config_1 = require("@nestjs/config");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 let UserService = class UserService {
-    constructor(userRepository) {
+    constructor(userRepository, configService) {
         this.userRepository = userRepository;
+        this.configService = configService;
+        this.salt = this.configService.get('SALT');
     }
     async create(user) {
+        const checkEmail = await this.userRepository.findOne({
+            where: { email: user.email },
+        });
+        if (checkEmail) {
+            throw new common_1.ConflictException('Un utilisateur avec cet e-mail existe déjà.');
+        }
+        const existingUser = await this.findOneByUsername(user.username);
+        if (existingUser) {
+            throw new common_1.ConflictException("Nom d'utilisateur déjà utilisé");
+        }
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(user.password, saltRounds);
         user.password = hashedPassword;
+        const email = user.email;
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(this.salt), iv);
+        let encryptedEmail = cipher.update(email, 'utf8', 'hex');
+        encryptedEmail += cipher.final('hex');
+        user.email = `${iv.toString('hex')}:${encryptedEmail}`;
         return this.userRepository.save(user);
     }
     async findAll() {
@@ -51,6 +71,13 @@ let UserService = class UserService {
     async findOneByUsername(username) {
         return this.userRepository.findOne({ where: { username } });
     }
+    async decryptEmail(user) {
+        const [iv, encryptedEmail] = user.email.split(':');
+        const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(this.salt), Buffer.from(iv, 'hex'));
+        let decryptedEmail = decipher.update(encryptedEmail, 'hex', 'utf8');
+        decryptedEmail += decipher.final('utf8');
+        return decryptedEmail;
+    }
     async update(id, user) {
         return this.userRepository.update(id, user);
     }
@@ -62,6 +89,7 @@ exports.UserService = UserService;
 exports.UserService = UserService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        config_1.ConfigService])
 ], UserService);
 //# sourceMappingURL=user.service.js.map
