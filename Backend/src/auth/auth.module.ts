@@ -6,10 +6,13 @@ import { UserModule } from '../user/user.module';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth.guard';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
   imports: [
     UserModule,
+    PassportModule,
     ConfigModule.forRoot(),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -22,6 +25,7 @@ import { AuthGuard } from './auth.guard';
   ],
   controllers: [AuthController],
   providers: [
+    JwtStrategy,
     AuthService,
     {
       provide: APP_GUARD,
