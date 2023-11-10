@@ -18,18 +18,18 @@ let AuthService = class AuthService {
         this.usersService = usersService;
         this.jwtService = jwtService;
     }
-    async signIn(username, pass) {
+    async validateUser(username, pass) {
         const user = await this.usersService.findOneByUsername(username);
-        if (!user) {
-            throw new common_1.UnauthorizedException('Utilisateur introuvable');
+        if (user && user.password === pass) {
+            const { password, ...result } = user;
+            return result;
         }
-        const isPasswordValid = await this.usersService.verifyPassword(username, pass);
-        if (!isPasswordValid) {
-            throw new common_1.UnauthorizedException('Mot de passe incorrect');
-        }
-        const payload = { sub: user.id, username: user.username };
+        return null;
+    }
+    async login(user) {
+        const payload = { username: user.username, sub: user.userId };
         return {
-            access_token: await this.jwtService.signAsync(payload),
+            access_token: this.jwtService.sign(payload),
         };
     }
 };

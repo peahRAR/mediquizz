@@ -26,27 +26,49 @@ let UserService = class UserService {
         this.configService = configService;
         this.salt = this.configService.get('SALT');
     }
-    async create(user) {
-        const checkEmail = await this.userRepository.findOne({
-            where: { email: user.email },
-        });
+    createMailIdentifier(email) {
+        const secretKey = this.configService.get('PASSWORDMAIL');
+        return crypto.createHmac('sha256', secretKey).update(email).digest('hex');
+    }
+    createMailData(email) {
+        const secret = this.configService.get('ENCRYPTION_KEY');
+        if (!secret) {
+            throw new Error('Secret key is not defined in the configuration.');
+        }
+        const key = crypto.scryptSync(secret, 'salt', 32);
+        const iv = crypto.randomBytes(16);
+        const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+        let encrypted = cipher.update(email, 'utf-8', 'hex');
+        encrypted += cipher.final('hex');
+        return iv.toString('hex') + ':' + encrypted;
+    }
+    async create(userData) {
+        const mailIdentifier = this.createMailIdentifier(userData.email);
+        const checkEmail = await this.userRepository
+            .createQueryBuilder('user')
+            .where("user.email ->> 'mailIdentifier' = :mailIdentifier", {
+            mailIdentifier,
+        })
+            .getOne();
         if (checkEmail) {
             throw new common_1.ConflictException('Un utilisateur avec cet e-mail existe déjà.');
         }
-        const existingUser = await this.findOneByUsername(user.username);
+        const existingUser = await this.findOneByUsername(userData.username);
         if (existingUser) {
             throw new common_1.ConflictException("Nom d'utilisateur déjà utilisé");
         }
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(user.password, saltRounds);
-        user.password = hashedPassword;
-        const email = user.email;
-        const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(this.salt), iv);
-        let encryptedEmail = cipher.update(email, 'utf8', 'hex');
-        encryptedEmail += cipher.final('hex');
-        user.email = `${iv.toString('hex')}:${encryptedEmail}`;
-        return this.userRepository.save(user);
+        const hashedPassword = await bcrypt.hash(userData.password, 10);
+        const newUser = this.userRepository.create({
+            username: userData.username,
+            password: hashedPassword,
+            email: {
+                mailIdentifier: mailIdentifier,
+                mailData: this.createMailData(userData.email),
+            },
+            bestScore: 0,
+            privilegeLevel: 0,
+        });
+        return this.userRepository.save(newUser);
     }
     async findAll() {
         return this.userRepository.find();
@@ -70,13 +92,6 @@ let UserService = class UserService {
     }
     async findOneByUsername(username) {
         return this.userRepository.findOne({ where: { username } });
-    }
-    async decryptEmail(user) {
-        const [iv, encryptedEmail] = user.email.split(':');
-        const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(this.salt), Buffer.from(iv, 'hex'));
-        let decryptedEmail = decipher.update(encryptedEmail, 'hex', 'utf8');
-        decryptedEmail += decipher.final('utf8');
-        return decryptedEmail;
     }
     async update(id, user) {
         return this.userRepository.update(id, user);

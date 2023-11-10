@@ -8,8 +8,11 @@ export class User {
   @Column()
   username: string; // Pseudo
 
-  @Column()
-  email: string; // Mail
+  @Column('json', { nullable: true }) // Mail
+  email: {
+    mailIdentifier: string;
+    mailData: string;
+  };
 
   @Column()
   password: string; // MDP a cyrypter

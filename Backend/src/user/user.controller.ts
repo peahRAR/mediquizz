@@ -11,6 +11,7 @@ import {
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import { Public } from 'src/decorators/public.decorator';
+import { CreateUserDto } from './create-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -18,8 +19,8 @@ export class UserController {
 
   @Public()
   @Post()
-  create(@Body() user: User): Promise<User> {
-    return this.userService.create(user);
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.userService.create(createUserDto);
   }
 
   @Public()

@@ -17,12 +17,13 @@ const common_1 = require("@nestjs/common");
 const user_entity_1 = require("./user.entity");
 const user_service_1 = require("./user.service");
 const public_decorator_1 = require("../decorators/public.decorator");
+const create_user_dto_1 = require("./create-user.dto");
 let UserController = class UserController {
     constructor(userService) {
         this.userService = userService;
     }
-    create(user) {
-        return this.userService.create(user);
+    create(createUserDto) {
+        return this.userService.create(createUserDto);
     }
     findAll() {
         return this.userService.findAll();
@@ -44,8 +45,8 @@ __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [user_entity_1.User]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:paramtypes", [create_user_dto_1.CreateUserDto]),
+    __metadata("design:returntype", void 0)
 ], UserController.prototype, "create", null);
 __decorate([
     (0, public_decorator_1.Public)(),
