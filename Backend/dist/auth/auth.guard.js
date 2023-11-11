@@ -9,19 +9,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AuthGuard = void 0;
+exports.JwtAuthGuard = void 0;
 const common_1 = require("@nestjs/common");
-const config_1 = require("@nestjs/config");
 const core_1 = require("@nestjs/core");
-const jwt_1 = require("@nestjs/jwt");
+const passport_1 = require("@nestjs/passport");
 const public_decorator_1 = require("../decorators/public.decorator");
-let AuthGuard = class AuthGuard {
-    constructor(jwtService, configService, reflector) {
-        this.jwtService = jwtService;
-        this.configService = configService;
+let JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
+    constructor(reflector) {
+        super();
         this.reflector = reflector;
     }
-    async canActivate(context) {
+    canActivate(context) {
         const isPublic = this.reflector.getAllAndOverride(public_decorator_1.IS_PUBLIC_KEY, [
             context.getHandler(),
             context.getClass(),
@@ -29,32 +27,12 @@ let AuthGuard = class AuthGuard {
         if (isPublic) {
             return true;
         }
-        const request = context.switchToHttp().getRequest();
-        const token = this.extractTokenFromHeader(request);
-        if (!token) {
-            throw new common_1.UnauthorizedException();
-        }
-        try {
-            const payload = await this.jwtService.verifyAsync(token, {
-                secret: this.configService.get('JWT_SECRET'),
-            });
-            request['user'] = payload;
-        }
-        catch {
-            throw new common_1.UnauthorizedException();
-        }
-        return true;
-    }
-    extractTokenFromHeader(request) {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        return type === 'Bearer' ? token : undefined;
+        return super.canActivate(context);
     }
 };
-exports.AuthGuard = AuthGuard;
-exports.AuthGuard = AuthGuard = __decorate([
+exports.JwtAuthGuard = JwtAuthGuard;
+exports.JwtAuthGuard = JwtAuthGuard = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [jwt_1.JwtService,
-        config_1.ConfigService,
-        core_1.Reflector])
-], AuthGuard);
+    __metadata("design:paramtypes", [core_1.Reflector])
+], JwtAuthGuard);
 //# sourceMappingURL=auth.guard.js.map

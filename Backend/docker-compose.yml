@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres
+    container_name: mediquizz-postgres
+    environment:
+      POSTGRES_PASSWORD: mediQuizz
+    ports:
+      - "5432:5432"
+    volumes:
+      - monVolumeLocal:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  monVolumeLocal:
