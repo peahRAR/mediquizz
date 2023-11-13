@@ -5,6 +5,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
+import { CategoryModule } from './category/category.module';
+import { Category } from './category/category.entity';
+import { Question } from './question/question.entity';
 
 @Module({
   imports: [
@@ -22,11 +25,13 @@ import { AuthModule } from './auth/auth.module';
         password: configService.get('POSTGRES_PASSWORD'),
         database: configService.get('POSTGRES_DB'),
         autoLoadEntities: true,
+        entities: [Category, Question],
         synchronize: configService.get('TYPEORM_SYNC') === 'true', // Attention: mettre false en production
       }),
     }),
     UserModule,
     AuthModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [AppService],

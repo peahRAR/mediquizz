@@ -24,7 +24,7 @@ __decorate([
     __metadata("design:type", String)
 ], Question.prototype, "content", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Question.prototype, "correctAnswer", void 0);
 __decorate([
@@ -35,6 +35,10 @@ __decorate([
     (0, typeorm_1.Column)({ default: false }),
     __metadata("design:type", Boolean)
 ], Question.prototype, "isMultipleChoice", void 0);
+__decorate([
+    (0, typeorm_1.Column)(),
+    __metadata("design:type", Number)
+], Question.prototype, "level", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => category_entity_1.Category, (category) => category.questions),
     (0, typeorm_1.JoinColumn)({ name: 'categoryId' }),

@@ -15,7 +15,7 @@ export class Question {
   @Column({ length: 500 })
   content: string; // Réponse de l'utilisateur
 
-  @Column({ nullable: true })
+  @Column()
   correctAnswer: string; // La bonne réponse (pour les questions à réponse courte)
 
   @Column({ type: 'simple-array', nullable: true })
@@ -23,6 +23,9 @@ export class Question {
 
   @Column({ default: false })
   isMultipleChoice: boolean; // Indique si la question est à choix multiples ou non
+
+  @Column()
+  level: number; // Indique le niveau de difficulté sur 10.
 
   @ManyToOne(() => Category, (category) => category.questions)
   @JoinColumn({ name: 'categoryId' })

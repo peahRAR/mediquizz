@@ -5,5 +5,6 @@ export declare class Question {
     correctAnswer: string;
     choices: string[];
     isMultipleChoice: boolean;
+    level: number;
     category: Category;
 }
