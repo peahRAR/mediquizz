@@ -4,6 +4,7 @@ import {
   IsString,
   IsArray,
   IsNumber,
+  IsObject,
 } from 'class-validator';
 
 export class UpdateQuestionDto {
@@ -24,6 +25,13 @@ export class UpdateQuestionDto {
   @IsOptional()
   isMultipleChoice?: boolean;
 
+  @IsString()
+  @IsOptional()
+  explanation?: string;
+
   @IsNumber()
   level: number;
+
+  @IsObject()
+  category: { id: number };
 }

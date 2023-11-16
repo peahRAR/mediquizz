@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const question_service_1 = require("./question.service");
 const create_question_dto_1 = require("./DTO/create-question.dto");
 const update_question_dto_1 = require("./DTO/update-question.dto");
+const public_decorator_1 = require("../decorators/public.decorator");
 let QuestionController = class QuestionController {
     constructor(questionService) {
         this.questionService = questionService;
@@ -25,10 +26,11 @@ let QuestionController = class QuestionController {
         return this.questionService.create(createQuestionDto);
     }
     async findAll() {
-        return this.questionService.findAll();
+        const questions = await this.questionService.findAll();
+        return questions;
     }
     async findOne(id) {
-        const question = await this.questionService.findOne(id);
+        const question = await this.questionService.findOne(Number(id));
         if (!question) {
             throw new common_1.NotFoundException(`Question with ID ${id} not found`);
         }
@@ -43,6 +45,7 @@ let QuestionController = class QuestionController {
 };
 exports.QuestionController = QuestionController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -50,19 +53,22 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], QuestionController.prototype, "create", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], QuestionController.prototype, "findAll", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
+    __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], QuestionController.prototype, "findOne", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -71,6 +77,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], QuestionController.prototype, "update", null);
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

@@ -40,6 +40,10 @@ __decorate([
     __metadata("design:type", Number)
 ], Question.prototype, "level", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ length: 500, nullable: true }),
+    __metadata("design:type", String)
+], Question.prototype, "explanation", void 0);
+__decorate([
     (0, typeorm_1.ManyToOne)(() => category_entity_1.Category, (category) => category.questions),
     (0, typeorm_1.JoinColumn)({ name: 'categoryId' }),
     __metadata("design:type", category_entity_1.Category)

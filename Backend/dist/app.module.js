@@ -17,6 +17,8 @@ const auth_module_1 = require("./auth/auth.module");
 const category_module_1 = require("./category/category.module");
 const category_entity_1 = require("./category/category.entity");
 const question_entity_1 = require("./question/question.entity");
+const question_module_1 = require("./question/question.module");
+const quizz_gateway_1 = require("./quiz/quizz/quizz.gateway");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -44,9 +46,10 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             auth_module_1.AuthModule,
             category_module_1.CategoryModule,
+            question_module_1.QuestionModule,
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        providers: [app_service_1.AppService, quizz_gateway_1.QuizGateway],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

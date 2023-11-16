@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/category.entity';
 import { Question } from './question/question.entity';
+import { QuestionModule } from './question/question.module';
+import { QuizGateway } from './quiz/quizz/quizz.gateway';
 
 @Module({
   imports: [
@@ -32,8 +34,9 @@ import { Question } from './question/question.entity';
     UserModule,
     AuthModule,
     CategoryModule,
+    QuestionModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, QuizGateway],
 })
 export class AppModule {}

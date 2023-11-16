@@ -33,7 +33,16 @@ __decorate([
     __metadata("design:type", Boolean)
 ], CreateQuestionDto.prototype, "isMultipleChoice", void 0);
 __decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateQuestionDto.prototype, "explanation", void 0);
+__decorate([
     (0, class_validator_1.IsNumber)(),
     __metadata("design:type", Number)
 ], CreateQuestionDto.prototype, "level", void 0);
+__decorate([
+    (0, class_validator_1.IsObject)(),
+    __metadata("design:type", Object)
+], CreateQuestionDto.prototype, "category", void 0);
 //# sourceMappingURL=create-question.dto.js.map

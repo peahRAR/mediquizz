@@ -27,6 +27,9 @@ export class Question {
   @Column()
   level: number; // Indique le niveau de difficulté sur 10.
 
+  @Column({ length: 500, nullable: true })
+  explanation: string; // Champ d'explication sur la réponse à la question
+
   @ManyToOne(() => Category, (category) => category.questions)
   @JoinColumn({ name: 'categoryId' })
   category: Category; // Categorie de la question

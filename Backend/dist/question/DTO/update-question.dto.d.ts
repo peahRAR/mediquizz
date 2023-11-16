@@ -3,5 +3,9 @@ export declare class UpdateQuestionDto {
     correctAnswer?: string;
     choices?: string[];
     isMultipleChoice?: boolean;
+    explanation?: string;
     level: number;
+    category: {
+        id: number;
+    };
 }

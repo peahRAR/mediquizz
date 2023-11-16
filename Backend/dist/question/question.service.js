@@ -26,12 +26,17 @@ let QuestionService = class QuestionService {
         return this.questionRepository.save(question);
     }
     async findAll() {
-        return this.questionRepository.find();
+        return this.questionRepository
+            .createQueryBuilder('question')
+            .leftJoinAndSelect('question.category', 'category')
+            .getMany();
     }
     async findOne(id) {
-        const question = await this.questionRepository.findOne({
-            where: { id: id },
-        });
+        const question = await this.questionRepository
+            .createQueryBuilder('question')
+            .leftJoinAndSelect('question.category', 'category')
+            .where('question.id = :id', { id: id })
+            .getOne();
         if (!question) {
             throw new common_1.NotFoundException(`Question with ID ${id} not found`);
         }

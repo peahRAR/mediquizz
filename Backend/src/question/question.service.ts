@@ -20,17 +20,24 @@ export class QuestionService {
 
   // Trouver toutes les questions
   async findAll(): Promise<Question[]> {
-    return this.questionRepository.find();
+    return this.questionRepository
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.category', 'category')
+      .getMany();
   }
 
   // Trouver une question par ID
   async findOne(id: number): Promise<Question> {
-    const question = await this.questionRepository.findOne({
-      where: { id: id },
-    });
+    const question = await this.questionRepository
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.category', 'category')
+      .where('question.id = :id', { id: id })
+      .getOne();
+
     if (!question) {
       throw new NotFoundException(`Question with ID ${id} not found`);
     }
+
     return question;
   }
 
