@@ -56,4 +56,11 @@ export class QuestionService {
     const question = await this.findOne(id);
     await this.questionRepository.remove(question);
   }
+
+  // Select
+  async getRandomQuestion(): Promise<Question> {
+    const questions = await this.questionRepository.find();
+    const randomIndex = Math.floor(Math.random() * questions.length);
+    return questions[randomIndex];
+  }
 }

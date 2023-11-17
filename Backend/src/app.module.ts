@@ -9,7 +9,7 @@ import { CategoryModule } from './category/category.module';
 import { Category } from './category/category.entity';
 import { Question } from './question/question.entity';
 import { QuestionModule } from './question/question.module';
-import { QuizGateway } from './quiz/quizz/quizz.gateway';
+import { QuizGateway } from './quiz/quiz.gateway';
 
 @Module({
   imports: [
