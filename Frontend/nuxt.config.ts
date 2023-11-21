@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   io : { 
     // options du module 
     sockets: [ { 
-      nom: 'main' , 
+      name: 'main' , 
       url: 'http://localhost:3000' 
     } ] 
   },
