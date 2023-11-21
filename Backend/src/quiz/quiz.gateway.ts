@@ -22,10 +22,12 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private questionService: QuestionService) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleConnection(client: any) {
     // Handle connection event
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleDisconnect(client: any) {
     // Handle disconnection event
   }
@@ -35,6 +37,7 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: GameParams,
     @ConnectedSocket() client: Socket,
   ) {
+    console.log('Received startGame event', data);
     // Initialisation de la partie.
     const nbQuestion = data.nbQuestion || 1; // Utilisez la valeur fournie ou une valeur par défaut
     client.emit('gameStarting', 'La partie va commencer');

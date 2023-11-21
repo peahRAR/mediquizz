@@ -3,5 +3,8 @@
     <header>
       <my-header/>
     </header>
+    <section>
+      <view-quiz />
+    </section>
   </div>
 </template>
