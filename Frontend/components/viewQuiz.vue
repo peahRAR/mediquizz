@@ -1,37 +1,45 @@
 <template>
     <div class="quiz container m-auto flex flex-col">
 
-        <!-- Chronomètre -->
-        <div v-if="timer" class="timer flex justify-end text-white items-center">
-            <p class="phase mr-4">{{ phase }}</p>
-            <div class="flex justify-center items-center">
-                <svg class="timer-circle stroke-blue-900 stroke-[4px]" width="50" height="50" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="45" fill="none" class="circle-background stroke-blue-900 stroke-[4px]" />
-                    <circle cx="50" cy="50" r="45" fill="none" :class="['circle-progress stroke-[4px]', circleColorClass]"
-                        :style="circleStyle" />
-                </svg>
-                <div class="absolute">
-                    {{ timer }}s
+        <div v-if="gameState==='on'" class="flex items-center justify-between">
+            <div class="question-info">
+                <p class=" text-white text-lg font-bold">
+                    Q : {{ currentQuestionNumber }}/{{ totalQuestions }}
+                </p>
+            </div>
+            <!-- Chronomètre -->
+            <div v-if="timer" class="timer flex justify-end text-white items-center">
+                <p class="phase mr-4">{{ phase }}</p>
+                <div class="flex justify-center items-center">
+                    <svg class="timer-circle stroke-blue-900 stroke-[4px]" width="50" height="50" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="none" class="circle-background stroke-blue-900 stroke-[4px]" />
+                        <circle cx="50" cy="50" r="45" fill="none" :class="['circle-progress stroke-[4px]', circleColorClass]"
+                            :style="circleStyle" />
+                    </svg>
+                    <div class="absolute">
+                        {{ timer }}s
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div
+        <div v-if="gameState === 'on'"
             class="question m-auto text-center p-6 w-full mt-4 border border-gray-800 bg-gray-400 rounded-lg flex justify-center">
-            <div v-if="currentQuestion">
-                <p>{{ currentQuestion.content }}</p>
+            <div>
+                <p v-if="currentQuestion">{{ currentQuestion.content }}</p>
+                <p v-else>Veuillez patienter...</p>
             </div>
         </div>
         <!-- Réponse QCM -->
         <div class="qcm grid grid-cols-2 gap-4 w-full mt-4 " v-if="isMultipleChoice">
-            <button class="w-full bg-gray-400 hover:bg-blue-200 border-gray-800 border rounded-lg"
-                v-for="(choice, index) in currentQuestion.choices" :key="index" @click="submitAnswer(choice)">
+            <button v-for="(choice, index) in currentQuestion.choices" :key="index" @click="submitAnswer(choice)"
+                :class="getButtonClass(choice)" class="border border-gray-800 rounded-lg">
                 <p class="p-4">{{ choice }}</p>
             </button>
         </div>
 
         <!-- Réponse ouverte (pas de choix multiples) -->
-        <div v-else class="mt-4">
+        <div v-if="!isMultipleChoice && currentQuestion" class="mt-4">
             <input type="text" v-model="userResponse" class="border border-gray-800 rounded-lg p-2 w-full"
                 placeholder="Votre réponse ici">
             <button @click="submitOpenResponse"
@@ -39,11 +47,11 @@
         </div>
 
         <!-- Réponse Affichée -->
-        <div v-if="answer" class="answer m-auto text-center mt-4">
+        <div v-if="answer && !isMultipleChoice && currentQuestion" class="answer m-auto text-center mt-4">
             La bonne réponse : {{ answer }}
         </div>
 
-        <button @click="startGame">Démarrer le Jeu</button>
+        <button v-if="gameState === 'off'" @click="startGame">Démarrer le Jeu</button>
     </div>
 </template>
   
@@ -57,18 +65,28 @@ export default {
             timer: 0,
             fullTimer: 0,
             timerInterval: null,
-            phase: null
+            phase: null,
+            correctAnswer: null,
+            gameState: 'off',
+            currentQuestionNumber: 0,
+            totalQuestions: 0,
         };
     },
     mounted() {
         this.socket = this.$nuxtSocket({ name: 'main' });
 
-        this.socket.on('gameStarting', (message) => {
+        this.socket.on('gameStarting', (data) => {
+            this.phase = "La partie va commencer : ";
+            this.gameState = 'on'
+            this.setTimer(data.timer);
+            this.totalQuestions = data.nbQuestion;
+            this.currentQuestionNumber = 1;
             this.currentQuestion = null; // Réinitialiser la question actuelle
         });
 
         this.socket.on('newQuestion', (data) => {
             this.currentQuestion = data.question;
+            this.currentQuestionNumber += 1;
             this.answer = null; // Réinitialiser la réponse
             this.phase = "Temps restant : ";
             this.setTimer(data.timer); // Démarrer le chronomètre pour 15 secondes
@@ -77,11 +95,13 @@ export default {
         this.socket.on('answer', (data) => {
             this.answer = data.answer;
             this.phase = "Correction : ";
+            this.correctAnswer = data.answer;
             this.setTimer(data.timer); // Afficher la réponse pendant 5 secondes
         });
 
         this.socket.on('waitingForNext', (data) => {
             this.phase = "Question suivante : ";
+            this.currentQuestion = null;
             this.setTimer(data.timer); // Affiche la question suivante dans 3 secondes
         });
 
@@ -109,7 +129,13 @@ export default {
                     clearInterval(this.timerInterval);
                 }
             }, 1000);
-        }
+        },
+        getButtonClass(choice) {
+            if (choice === this.correctAnswer) {
+                return 'bg-green-500'; // Classe pour la bonne réponse
+            }
+            return 'bg-gray-400'; // Classe par défaut
+        },
     },
     computed: {
         circleStyle() {
@@ -151,8 +177,6 @@ export default {
 
 <style>
 .timer-circle .circle-progress {
-    /* Couleur de progression */
-
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
     transition: stroke-dashoffset 0.5s linear;

@@ -20,7 +20,7 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  constructor(private questionService: QuestionService) { }
+  constructor(private questionService: QuestionService) {}
 
   // Fonction pour créer un délai
   delay(ms: number) {
@@ -46,7 +46,8 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // ... initialisation de la partie ...
 
     const nbQuestion = data.nbQuestion || 1; // Utilisez la valeur fournie ou une valeur par défaut
-    client.emit('gameStarting', 'La partie va commencer');
+    client.emit('gameStarting', { timer: 10, nbQuestion });
+    await this.delay(10000);
 
     for (let i = 0; i < nbQuestion; i++) {
       const question = await this.questionService.getRandomQuestion();
