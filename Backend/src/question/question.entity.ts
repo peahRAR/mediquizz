@@ -18,8 +18,8 @@ export class Question {
   @Column()
   correctAnswer: string; // La bonne réponse (pour les questions à réponse courte)
 
-  @Column({ type: 'simple-array', nullable: true })
-  choices: string[]; // Les choix pour les questions à choix multiples
+  @Column({ type: 'json', nullable: true })
+  choices: { id: number; content: string }[]; // Tableau d'objets pour les choix
 
   @Column({ default: false })
   isMultipleChoice: boolean; // Indique si la question est à choix multiples ou non

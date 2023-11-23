@@ -5,7 +5,10 @@ import {
   IsArray,
   IsNumber,
   IsObject,
+  ValidateNested,
 } from 'class-validator';
+import { ChoiceDto } from './choice.dto';
+import { Type } from 'class-transformer';
 
 export class CreateQuestionDto {
   @IsString()
@@ -15,9 +18,10 @@ export class CreateQuestionDto {
   correctAnswer?: string;
 
   @IsArray()
-  @IsString({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => ChoiceDto)
   @IsOptional()
-  choices?: string[];
+  choices?: ChoiceDto[];
 
   @IsBoolean()
   isMultipleChoice: boolean;

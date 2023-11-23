@@ -1,20 +1,20 @@
 <template>
     <div class="quiz container m-auto flex flex-col">
 
-        <div v-if="gameState==='on'" class="flex items-center justify-between">
-            <div class="question-info">
+        <div v-if="gameState === 'on'" class="flex items-center justify-between">
+            <div v-if="currentQuestionNumber > 0" class="question-info w-full">
                 <p class=" text-white text-lg font-bold">
                     Q : {{ currentQuestionNumber }}/{{ totalQuestions }}
                 </p>
             </div>
             <!-- Chronomètre -->
-            <div v-if="timer" class="timer flex justify-end text-white items-center">
+            <div v-if="timer" class=" w-full timer flex justify-end text-white items-center">
                 <p class="phase mr-4">{{ phase }}</p>
                 <div class="flex justify-center items-center">
                     <svg class="timer-circle stroke-blue-900 stroke-[4px]" width="50" height="50" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="45" fill="none" class="circle-background stroke-blue-900 stroke-[4px]" />
-                        <circle cx="50" cy="50" r="45" fill="none" :class="['circle-progress stroke-[4px]', circleColorClass]"
-                            :style="circleStyle" />
+                        <circle cx="50" cy="50" r="45" fill="none"
+                            :class="['circle-progress stroke-[4px]', circleColorClass]" :style="circleStyle" />
                     </svg>
                     <div class="absolute">
                         {{ timer }}s
@@ -32,9 +32,10 @@
         </div>
         <!-- Réponse QCM -->
         <div class="qcm grid grid-cols-2 gap-4 w-full mt-4 " v-if="isMultipleChoice">
-            <button v-for="(choice, index) in currentQuestion.choices" :key="index" @click="submitAnswer(choice)"
-                :class="getButtonClass(choice)" class="border border-gray-800 rounded-lg">
-                <p class="p-4">{{ choice }}</p>
+            <button v-for="(choice, index) in currentQuestion.choices" :key="choice.id"
+                @click="timeIsUp ? null : submitAnswer(choice.content)" :disabled="timeIsUp" :class="getButtonClass(choice.id)"
+                class="border border-gray-800 rounded-lg">
+                <p class="p-4">{{ choice.content }}</p>
             </button>
         </div>
 
@@ -70,6 +71,7 @@ export default {
             gameState: 'off',
             currentQuestionNumber: 0,
             totalQuestions: 0,
+            timeIsUp: false,
         };
     },
     mounted() {
@@ -80,13 +82,15 @@ export default {
             this.gameState = 'on'
             this.setTimer(data.timer);
             this.totalQuestions = data.nbQuestion;
-            this.currentQuestionNumber = 1;
+            this.currentQuestionNumber = 0;
             this.currentQuestion = null; // Réinitialiser la question actuelle
         });
 
         this.socket.on('newQuestion', (data) => {
-            this.currentQuestion = data.question;
-            this.currentQuestionNumber += 1;
+            this.currentQuestion = data.questionData;
+            if (this.currentQuestionNumber < this.totalQuestions) {
+                this.currentQuestionNumber += 1;
+            }
             this.answer = null; // Réinitialiser la réponse
             this.phase = "Temps restant : ";
             this.setTimer(data.timer); // Démarrer le chronomètre pour 15 secondes
@@ -127,6 +131,7 @@ export default {
                     this.timer -= 1;
                 } else {
                     clearInterval(this.timerInterval);
+                    this.timeIsUp = true;
                 }
             }, 1000);
         },
@@ -134,7 +139,9 @@ export default {
             if (choice === this.correctAnswer) {
                 return 'bg-green-500'; // Classe pour la bonne réponse
             }
-            return 'bg-gray-400'; // Classe par défaut
+            if (!this.timeIsUp) {
+                return 'bg-gray-400'; // Classe par défaut
+            }
         },
     },
     computed: {

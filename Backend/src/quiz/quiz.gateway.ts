@@ -50,9 +50,18 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
     await this.delay(10000);
 
     for (let i = 0; i < nbQuestion; i++) {
+      // Selectionne une question de manière aléatoire
       const question = await this.questionService.getRandomQuestion();
 
-      client.emit('newQuestion', { question, timer: 15 }); // Envoyer chaque question au client
+      // Construire un objet contenant uniquement les propriétés nécessaires
+      const questionData = {
+        content: question.content,
+        choices: question.choices,
+        isMultipleChoice: question.isMultipleChoice,
+      };
+
+      // Envoie une question
+      client.emit('newQuestion', { questionData, timer: 15 }); // Envoyer chaque question au client
       // délai pour répondre à la question
       await this.delay(15000);
 
