@@ -33,8 +33,8 @@
         <!-- Réponse QCM -->
         <div class="qcm grid grid-cols-2 gap-4 w-full mt-4 " v-if="isMultipleChoice">
             <button v-for="(choice, index) in currentQuestion.choices" :key="choice.id"
-                @click="timeIsUp ? null : submitAnswer(choice.content)" :disabled="timeIsUp" :class="getButtonClass(choice.id)"
-                class="border border-gray-800 rounded-lg">
+                @click="timeIsUp ? null : submitAnswer(choice.content)" :disabled="timeIsUp || currentLives < 1"
+                :class="getButtonClass(choice)" class="border border-gray-800 bg-gray-400 rounded-lg">
                 <p class="p-4">{{ choice.content }}</p>
             </button>
         </div>
@@ -63,6 +63,7 @@ export default {
             socket: null,
             currentQuestion: null,
             answer: null,
+            userAnswer : null,
             timer: 0,
             fullTimer: 0,
             timerInterval: null,
@@ -72,6 +73,9 @@ export default {
             currentQuestionNumber: 0,
             totalQuestions: 0,
             timeIsUp: false,
+            currentLives: 0,
+            idQuestion: null,
+            isCorrect: null,
         };
     },
     mounted() {
@@ -88,6 +92,8 @@ export default {
 
         this.socket.on('newQuestion', (data) => {
             this.currentQuestion = data.questionData;
+            this.currentLives = data.questionData.lives;
+            this.idQuestion = data.questionData.idQuestion;
             if (this.currentQuestionNumber < this.totalQuestions) {
                 this.currentQuestionNumber += 1;
             }
@@ -109,14 +115,26 @@ export default {
             this.setTimer(data.timer); // Affiche la question suivante dans 3 secondes
         });
 
+        this.socket.on('answerResult', (data) => {
+            this.isCorrect = data.correct
+            if (!data.correct) {
+                this.currentLives = data.lives; // Mettre à jour les vies restantes
+            }
+        })
+
     },
     methods: {
         startGame() {
             this.socket.emit('startGame', { nbQuestion: 8 });
         },
         submitAnswer(choice) {
-            console.log('Réponse soumise:', choice);
-            // Envoyer la réponse au serveur ou passer à la question suivante
+            this.userAnswer = choice
+            if (this.currentLives > 0) {
+                this.socket.emit('submitAnswer', { answer: choice, questionId: this.idQuestion });
+            } else {
+                // ... gérer le cas où il n'y a plus de vies ...
+                return
+            }
         },
         submitOpenResponse() {
             console.log('Réponse ouverte soumise:', this.userResponse);
@@ -136,13 +154,15 @@ export default {
             }, 1000);
         },
         getButtonClass(choice) {
-            if (choice === this.correctAnswer) {
-                return 'bg-green-500'; // Classe pour la bonne réponse
+            console.log(this.userAnswer);
+            console.log(choice.content);
+            // Si le temps n'est pas écoulé et que l'utilisateur a choisi cette option
+            if (!this.timeIsUp && choice.content === this.userAnswer) {
+                return this.isCorrect ? 'correct' : 'wrong';
             }
-            if (!this.timeIsUp) {
-                return 'bg-gray-400'; // Classe par défaut
-            }
-        },
+            // Sinon, appliquer la classe par défaut
+            return 'regular';
+        }, 
     },
     computed: {
         circleStyle() {
@@ -159,21 +179,11 @@ export default {
         },
 
         circleColorClass() {
-            if (this.timer < 4) {
-                return 'stroke-red-500';
-            }
-            if (this.timer < 11) {
-                return 'stroke-orange-300';
-            }
-            if (this.timer < 8) {
-                return 'stroke-orange-400';
-            }
-            if (this.timer < 6) {
-                return 'stroke-orange-500';
-            }
-            if (this.timer >= 11) {
-                return 'stroke-white';
-            }
+            return this.timer < 4 ? 'stroke-red-500' :
+                this.timer < 6 ? 'stroke-orange-500' :
+                    this.timer < 8 ? 'stroke-orange-400' :
+                        this.timer < 11 ? 'stroke-orange-300' :
+                            'stroke-white';
         },
     },
     beforeDestroy() {
@@ -187,6 +197,18 @@ export default {
     transform: rotate(-90deg);
     transform-origin: 50% 50%;
     transition: stroke-dashoffset 0.5s linear;
+}
+
+.correct {
+    @apply bg-green-500;
+}
+
+.regular:hover {
+    @apply bg-blue-300;
+}
+
+.wrong {
+    @apply bg-red-500;
 }
 </style>
   

@@ -20,6 +20,8 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
+  private userLives = new Map<string, number>();
+
   constructor(private questionService: QuestionService) {}
 
   // Fonction pour créer un délai
@@ -29,12 +31,14 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleConnection(client: any) {
-    // Handle connection event
+    // Initialise le nombre de vies lors de la connexion
+    this.userLives.set(client.id, 0);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleDisconnect(client: any) {
-    // Handle disconnection event
+    // Nettoyage à la déconnexion
+    this.userLives.delete(client.id);
   }
 
   @SubscribeMessage('startGame')
@@ -53,11 +57,16 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Selectionne une question de manière aléatoire
       const question = await this.questionService.getRandomQuestion();
 
+      // Déterminer le nombre de vies
+      const lives = question.isMultipleChoice ? 1 : 3;
+
       // Construire un objet contenant uniquement les propriétés nécessaires
       const questionData = {
+        idQuestion: question.id,
         content: question.content,
         choices: question.choices,
         isMultipleChoice: question.isMultipleChoice,
+        lives,
       };
 
       // Envoie une question
@@ -77,5 +86,30 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     client.emit('gameEnded', 'La partie est terminée'); // Signaler la fin du quiz
+  }
+
+  @SubscribeMessage('submitAnswer')
+  async handleSubmitAnswer(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: Socket,
+  ) {
+    const userAnswer = data.answer;
+    const questionId = data.questionId;
+    // Récupérer la question par son ID
+    const question = await this.questionService.findOne(questionId);
+    // Vérifier si la réponse de l'utilisateur est correcte
+    const isCorrect = question.correctAnswer === userAnswer;
+
+    // Décrémente les vies si la réponse est incorrecte
+    if (!isCorrect) {
+      const currentLives = this.userLives.get(client.id) || 0;
+      this.userLives.set(client.id, Math.max(0, currentLives - 1));
+    }
+
+    // Envoie le résultat de la vérification et les vies restantes
+    client.emit('answerResult', {
+      correct: isCorrect,
+      lives: this.userLives.get(client.id),
+    });
   }
 }
