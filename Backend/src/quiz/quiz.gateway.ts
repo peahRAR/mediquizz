@@ -100,11 +100,10 @@ export class QuizGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Vérifier si la réponse de l'utilisateur est correcte
     const isCorrect = question.correctAnswer === userAnswer;
 
-    // Décrémente les vies si la réponse est incorrecte
-    if (!isCorrect) {
-      const currentLives = this.userLives.get(client.id) || 0;
-      this.userLives.set(client.id, Math.max(0, currentLives - 1));
-    }
+    // Décrémente le nombre de tentative / vie
+
+    const currentLives = this.userLives.get(client.id) || 0;
+    this.userLives.set(client.id, Math.max(0, currentLives - 1));
 
     // Envoie le résultat de la vérification et les vies restantes
     client.emit('answerResult', {

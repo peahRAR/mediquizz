@@ -9,7 +9,7 @@
             </div>
             <!-- Chronomètre -->
             <div v-if="timer" class=" w-full timer flex justify-end text-white items-center">
-                <p class="phase mr-4">{{ phase }}</p>
+                <p class="step mr-4">{{ step }}</p>
                 <div class="flex justify-center items-center">
                     <svg class="timer-circle stroke-blue-900 stroke-[4px]" width="50" height="50" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="45" fill="none" class="circle-background stroke-blue-900 stroke-[4px]" />
@@ -24,7 +24,7 @@
         </div>
 
         <div v-if="gameState === 'on'"
-            class="question m-auto text-center p-6 w-full mt-4 border border-gray-800 bg-gray-400 rounded-lg flex justify-center">
+            class="question select-none m-auto text-center p-6 w-full mt-4 border border-gray-800 bg-gray-400 rounded-lg flex justify-center">
             <div>
                 <p v-if="currentQuestion">{{ currentQuestion.content }}</p>
                 <p v-else>Veuillez patienter...</p>
@@ -33,8 +33,9 @@
         <!-- Réponse QCM -->
         <div class="qcm grid grid-cols-2 gap-4 w-full mt-4 " v-if="isMultipleChoice">
             <button v-for="(choice, index) in currentQuestion.choices" :key="choice.id"
-                @click="timeIsUp ? null : submitAnswer(choice.content)" :disabled="timeIsUp || currentLives < 1"
-                :class="getButtonClass(choice)" class="border border-gray-800 bg-gray-400 rounded-lg">
+                @click="timeIsUp || currentLives < 1 ? null : submitAnswer(choice.content)"
+                :disabled="timeIsUp || currentLives < 1" :class="[getButtonClass(choice)]"
+                class="border select-none border-gray-800 bg-gray-400 rounded-lg">
                 <p class="p-4">{{ choice.content }}</p>
             </button>
         </div>
@@ -63,11 +64,11 @@ export default {
             socket: null,
             currentQuestion: null,
             answer: null,
-            userAnswer : null,
+            userAnswer: null,
             timer: 0,
             fullTimer: 0,
             timerInterval: null,
-            phase: null,
+            step: null,
             correctAnswer: null,
             gameState: 'off',
             currentQuestionNumber: 0,
@@ -82,7 +83,7 @@ export default {
         this.socket = this.$nuxtSocket({ name: 'main' });
 
         this.socket.on('gameStarting', (data) => {
-            this.phase = "La partie va commencer : ";
+            this.step = "La partie va commencer : ";
             this.gameState = 'on'
             this.setTimer(data.timer);
             this.totalQuestions = data.nbQuestion;
@@ -91,6 +92,7 @@ export default {
         });
 
         this.socket.on('newQuestion', (data) => {
+            this.userAnswer = null;
             this.currentQuestion = data.questionData;
             this.currentLives = data.questionData.lives;
             this.idQuestion = data.questionData.idQuestion;
@@ -98,28 +100,27 @@ export default {
                 this.currentQuestionNumber += 1;
             }
             this.answer = null; // Réinitialiser la réponse
-            this.phase = "Temps restant : ";
+            this.step = "Temps restant : ";
             this.setTimer(data.timer); // Démarrer le chronomètre pour 15 secondes
         });
 
         this.socket.on('answer', (data) => {
             this.answer = data.answer;
-            this.phase = "Correction : ";
+            this.step = "Correction : ";
             this.correctAnswer = data.answer;
             this.setTimer(data.timer); // Afficher la réponse pendant 5 secondes
         });
 
         this.socket.on('waitingForNext', (data) => {
-            this.phase = "Question suivante : ";
+            this.step = "Question suivante : ";
             this.currentQuestion = null;
             this.setTimer(data.timer); // Affiche la question suivante dans 3 secondes
         });
 
         this.socket.on('answerResult', (data) => {
             this.isCorrect = data.correct
-            if (!data.correct) {
-                this.currentLives = data.lives; // Mettre à jour les vies restantes
-            }
+            this.currentLives = data.lives; // Mettre à jour les tentatives restante restantes
+
         })
 
     },
@@ -129,7 +130,7 @@ export default {
         },
         submitAnswer(choice) {
             this.userAnswer = choice
-            if (this.currentLives > 0) {
+            if (this.currentLives > 0 && !this.timeIsUp) {
                 this.socket.emit('submitAnswer', { answer: choice, questionId: this.idQuestion });
             } else {
                 // ... gérer le cas où il n'y a plus de vies ...
@@ -148,21 +149,23 @@ export default {
                 if (this.timer > 0) {
                     this.timer -= 1;
                 } else {
-                    clearInterval(this.timerInterval);
+                    console.log('finito');
                     this.timeIsUp = true;
+                    clearInterval(this.timerInterval);
                 }
             }, 1000);
         },
         getButtonClass(choice) {
-            console.log(this.userAnswer);
-            console.log(choice.content);
             // Si le temps n'est pas écoulé et que l'utilisateur a choisi cette option
             if (!this.timeIsUp && choice.content === this.userAnswer) {
                 return this.isCorrect ? 'correct' : 'wrong';
             }
             // Sinon, appliquer la classe par défaut
+            if(this.currentLives < 1 && this.userAnswer != null && choice.content !== this.userAnswer){
+                return 'disabled-button'
+            }
             return 'regular';
-        }, 
+        },
     },
     computed: {
         circleStyle() {
@@ -209,6 +212,10 @@ export default {
 
 .wrong {
     @apply bg-red-500;
+}
+
+.disabled-button {
+    @apply opacity-50;
 }
 </style>
   
