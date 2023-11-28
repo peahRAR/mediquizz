@@ -17,7 +17,7 @@
                             :class="['circle-progress stroke-[4px]', circleColorClass]" :style="circleStyle" />
                     </svg>
                     <div class="absolute">
-                        {{ timer }}s
+                        {{ timer - 1 }}s
                     </div>
                 </div>
             </div>
@@ -105,6 +105,7 @@ export default {
         });
 
         this.socket.on('answer', (data) => {
+            this.timeIsUp = true;
             this.answer = data.answer;
             this.step = "Correction : ";
             this.correctAnswer = data.answer;
@@ -113,6 +114,7 @@ export default {
 
         this.socket.on('waitingForNext', (data) => {
             this.step = "Question suivante : ";
+            this.timeIsUp = false;
             this.currentQuestion = null;
             this.setTimer(data.timer); // Affiche la question suivante dans 3 secondes
         });
@@ -142,15 +144,16 @@ export default {
             // Envoyer la réponse ouverte au serveur
         },
         setTimer(seconds) {
-            this.fullTimer = seconds
+            this.fullTimer = seconds;
             this.timer = seconds;
             clearInterval(this.timerInterval);
+
             this.timerInterval = setInterval(() => {
                 if (this.timer > 0) {
                     this.timer -= 1;
-                } else {
-                    console.log('finito');
-                    this.timeIsUp = true;
+                }
+
+                if (this.timer <= 0) {
                     clearInterval(this.timerInterval);
                 }
             }, 1000);
@@ -161,7 +164,7 @@ export default {
                 return this.isCorrect ? 'correct' : 'wrong';
             }
             // Sinon, appliquer la classe par défaut
-            if(this.currentLives < 1 && this.userAnswer != null && choice.content !== this.userAnswer){
+            if (this.currentLives < 1 && this.userAnswer != null && choice.content !== this.userAnswer) {
                 return 'disabled-button'
             }
             return 'regular';
@@ -170,7 +173,14 @@ export default {
     computed: {
         circleStyle() {
             const totalLength = 2 * Math.PI * 45; // Circonférence du cercle (rayon = 45)
-            const filledLength = (totalLength / this.fullTimer) * this.timer; // Remplissage basé sur le timer
+            let filledLength;
+
+            if (this.timer <= 0) {
+                filledLength = totalLength; // Le cercle doit être complètement vide
+            } else {
+                filledLength = (totalLength / this.fullTimer) * this.timer;
+            }
+
             return {
                 strokeDasharray: `${totalLength} ${totalLength}`,
                 strokeDashoffset: totalLength - filledLength,
