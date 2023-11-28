@@ -17,7 +17,7 @@
                             :class="['circle-progress stroke-[4px]', circleColorClass]" :style="circleStyle" />
                     </svg>
                     <div class="absolute">
-                        {{ timer - 1 }}s
+                        {{ timer }}s
                     </div>
                 </div>
             </div>
